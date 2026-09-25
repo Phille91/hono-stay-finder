@@ -1,0 +1,140 @@
+import { Hono } from "hono";
+import { propertyOptionalValidator, propertyValidator } from "../validators/propertyValidator.js";
+import fs from "fs/promises";
+import { write } from "fs";
+
+const properties = new Hono({ strict: false });
+
+const readProperties = async (): Promise<Property[]> => {
+  const data: string = await fs.readFile("src/data/properties.json", "utf-8");
+  return JSON.parse(data);
+}
+
+const writeProperties = async (propertyList: Property[]) => {
+  await fs.writeFile(
+    "src/data/properties.json",
+    JSON.stringify(propertyList, null, 2)
+  );
+};
+
+
+// const dummyProperties: Property[] = [
+//   {
+//     property_id: "property_1001",
+//     title: "Cozy Studio in Södermalm",
+//     description:
+//       "A bright and cozy studio apartment close to cafés, parks and public transport.",
+//     location: "Stockholm, Sweden",
+//     price_per_night: 850,
+//     max_guests: 2,
+//   },
+//   {
+//     property_id: "property_1002",
+//     title: "Modern Loft by the Harbor",
+//     description:
+//       "Spacious loft with harbor views, perfect for couples or small families.",
+//     location: "Gothenburg, Sweden",
+//     price_per_night: 1200,
+//     max_guests: 4,
+//   },
+//   {
+//     property_id: "property_1003",
+//     title: "Countryside Cabin",
+//     description:
+//       "A peaceful wooden cabin surrounded by forest, ideal for a quiet getaway.",
+//     location: "Dalarna, Sweden",
+//     price_per_night: 650,
+//     max_guests: 6,
+//   },
+//   {
+//     property_id: "property_1004",
+//     title: "City Center Apartment",
+//     description:
+//       "Newly renovated apartment right in the heart of the city, walking distance to everything.",
+//     location: "Malmö, Sweden",
+//     price_per_night: 950,
+//     max_guests: 3,
+//   },
+// ];
+
+properties.get("/", async (c) => {
+  try {
+    const propertyList = await readProperties();
+    return c.json(propertyList);
+
+  } catch (error) {
+    return c.json([]);
+  }
+});
+
+// individuell GET hämta en Property om den finns baserat på ID annars null 404
+properties.get("/:id", async (c) => {
+  const propertyId = c.req.param("id");
+  const propertyList = await readProperties();
+  const property = propertyList.find(  
+  (p) => p.property_id === propertyId,
+  );
+  if (!property) {
+    return c.json(null, 404);
+  }
+  return c.json(property);
+});
+
+// "Skpande" av en Propery POST genom en JSON body använd Postman eller thunderclient för detta
+properties.post("/", propertyValidator, async (c) => {
+  const propertyBody: NewProperty = c.req.valid("json")
+  const propertyList = await readProperties();
+
+  const property: Property = {
+    ...propertyBody,
+    property_id: `property_${Math.floor(1000 + Math.random()* 9000)}`
+  }
+
+  propertyList.push(property)
+  await writeProperties(propertyList);
+
+  return c.json(property, 201) 
+})
+
+// Extra: "Updaterande" av en Property PUT/PATCH (för patch kolla Partial types)
+// om den finns tänk en blandning mellan GET + POST
+properties.patch("/:id", propertyOptionalValidator, async (c) => {
+  const propertyId = c.req.param("id");
+  const propertyList = await readProperties();
+
+  const propertyIndex = propertyList.findIndex(
+    (property) => property.property_id === propertyId,
+  );
+  
+  if (propertyIndex === -1) {
+    return c.json(null, 404);
+  }
+
+  const propertyBody: Partial<Property> = c.req.valid("json")
+  propertyList[propertyIndex] = {
+    ...propertyList[propertyIndex],
+    ...propertyBody,
+    property_id: propertyList[propertyIndex].property_id
+  }
+  await writeProperties(propertyList)
+
+  return c.json(propertyList[propertyIndex])
+
+})
+
+// Extra: "bortagning" av en Property DELETE om den finns tänk en GET som sedan tar bort 200/204
+properties.delete("/:id", async (c) => {
+  const propertyId = c.req.param("id");
+  const propertyList = await readProperties();
+
+  const propertyIndex = propertyList.findIndex(
+    (p) => p.property_id === propertyId,
+  );
+  if (propertyIndex === -1) {
+    return c.json(null, 404);
+  }
+  propertyList.splice(propertyIndex,1)
+  await writeProperties(propertyList);
+  return c.json(null, 200);
+});
+export default properties;
