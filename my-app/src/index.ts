@@ -1,6 +1,7 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { prettyJSON } from 'hono/pretty-json'
+
 import properties from './routes/properties.js'
 import bookings from './routes/bookings.js'
 
@@ -17,7 +18,6 @@ app.get('/', (c) => {
 
 app.route("/properties",properties)
 app.route("/bookings",bookings)
-
 serve({
   fetch: app.fetch,
   port: 3000
