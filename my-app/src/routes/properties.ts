@@ -32,24 +32,20 @@ properties.get("/", async (c) => {
   }
 });
 
-// GET: properties either properties/kind/villa/ | properties/kind/appartment/
-// If not neither of those 400
-// Filter properties based on the kind 
-// Extra add all previous search filtering from GET: properties
 properties.get("/kind/:kind", propertyParamValidator, async (c) => {
-  const kind = c.req.valid("param").kind
+  const kind = c.req.valid("param").kind;
   try {
     const properties = await getPropertiesByKind(kind, {
       maxPrice: Number(c.req.query("maxprice")) || undefined,
       location: c.req.query("location"),
       maxGuests: Number(c.req.query("maxguests")) || undefined,
-    })
-    return c.json(properties)
+    });
+    return c.json(properties);
   } catch (e) {
     console.warn("Error in fetching properties from SB database", e);
-    return c.json([])
+    return c.json([]);
   }
-})
+});
 
 // individuell GET hämta en Property om den finns baserat på ID annars null 404
 properties.get("/:id", async (c) => {
