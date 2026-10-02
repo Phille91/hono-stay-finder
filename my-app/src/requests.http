@@ -1,0 +1,23 @@
+### Register
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "email": "philipdale91@gmail.com",
+  "password": "testtest"
+}
+
+### Login
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "philipdale91@gmail.com",
+  "password": "testtest"
+}
+
+### Me
+GET http://localhost:3000/auth/me
+
+### Logout
+POST http://localhost:3000/auth/logout
