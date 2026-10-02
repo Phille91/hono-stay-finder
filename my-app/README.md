@@ -7,6 +7,11 @@ npm run dev
 open http://localhost:3000
 ```
 
+Frågor vid genomgången av uppgift:
+
+1. Filtrering och Refresh token står som (fördjupning), är inte det lite förvirrande att de är på G nivån?
+2.
+
 UPPGIFT
 
 Konto och inloggning
@@ -15,8 +20,8 @@ G1. En besökare kan skapa ett konto, logga in och logga ut.
 G2. Inloggningen finns kvar när sidan laddas om, och appen kan alltid visa vem som är inloggad.
 
 G3. Navigeringen visar olika innehåll för en inloggad användare och en utloggad besökare.
-Boenden
 
+Boenden
 G4. Alla kan se en lista över boenden och en detaljsida för varje boende.
 
 G5. Listan kan filtreras på plats, maxpris och antal gäster.
@@ -26,8 +31,8 @@ G6. Bara inloggade användare kan skapa, ändra och ta bort boenden. Det gäller
 G7. En inloggad användare kan skapa ett nytt boende via ett formulär i frontenden.
 
 G8. Listan kan sorteras på pris, stigande eller fallande. Sorteringen görs i backend.
-Bokningar
 
+Bokningar
 G9. En inloggad användare kan boka ett boende från detaljsidan. En utloggad besökare uppmanas att logga in.
 
 G10. En bokning med ogiltiga uppgifter nekas, till exempel ogiltig e-post, noll gäster eller incheckning efter utcheckning. Felet visas begripligt i formuläret.
