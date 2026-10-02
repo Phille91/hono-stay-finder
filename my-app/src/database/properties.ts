@@ -1,6 +1,9 @@
-import type { PostgrestSingleResponse } from "@supabase/supabase-js";
+import type {
+  PostgrestFilterBuilder,
+  PostgrestSingleResponse,
+} from "@supabase/supabase-js";
 
-import { supabase } from "../lib/supabase.js";
+import { sb } from "../lib/supabase.js";
 
 const TABLE_NAME = "properties";
 
@@ -11,29 +14,59 @@ const SELECT_QUERY_LIST: PropertyValidKey[] = [
   "location",
   "price_per_night",
   "max_guests",
+  "kind",
   "created_at",
 ];
 
 const SELECT_QUERY = SELECT_QUERY_LIST.join(", ");
 const QUERY_ID = "property_id";
+const QUERY_KIND = "kind";
 
 type PropertyListFilter = Partial<{
   maxPrice: number;
   location: string;
+  maxGuests: number;
 }>;
 
-export async function getProperties(
+function buildPropertiesFilter(
+  query: PostgrestFilterBuilder<any, any, any, any>,
   filters: PropertyListFilter,
-): Promise<any[]> {
-  let query = supabase.from(TABLE_NAME).select(SELECT_QUERY);
-
+) {
   if (filters.maxPrice) {
     query = query.lte("price_per_night", filters.maxPrice);
   }
 
-  if(filters.location) {
-    query = query.ilike("location", `%${filters.location}%`)
+  if (filters.maxGuests) {
+    query = query.lte("max_guests", filters.maxGuests);
   }
+
+  if (filters.location && filters.location.trim().length > 2) {
+    query = query.ilike("location", `%${filters.location}%`);
+  }
+}
+
+export async function getProperties(
+  filters: PropertyListFilter,
+): Promise<Property[]> {
+  let query = sb.from(TABLE_NAME).select(SELECT_QUERY);
+
+  buildPropertiesFilter(query, filters);
+
+  const { error, data } = await query;
+
+  if (!error) {
+    return data as any as Property[];
+  }
+  throw error;
+}
+
+export async function getPropertiesByKind(
+  kind: PropertyKind,
+  filters: PropertyListFilter,
+): Promise<Property[]> {
+  const query = sb.from(TABLE_NAME).select(SELECT_QUERY).eq(QUERY_KIND, kind);
+
+  buildPropertiesFilter(query, filters);
 
   const { error, data } = await query;
 
@@ -44,7 +77,7 @@ export async function getProperties(
 }
 
 export async function getPropertyById(propertyId: string): Promise<Property> {
-  const { error, data }: PostgrestSingleResponse<Property> = await supabase
+  const { error, data }: PostgrestSingleResponse<Property> = await sb
     .from(TABLE_NAME)
     .select(SELECT_QUERY)
     .eq(QUERY_ID, propertyId)
@@ -57,7 +90,7 @@ export async function getPropertyById(propertyId: string): Promise<Property> {
 }
 
 export async function createProperty(propertyBody: NewProperty) {
-  const { error, data }: PostgrestSingleResponse<Property> = await supabase
+  const { error, data }: PostgrestSingleResponse<Property> = await sb
     .from(TABLE_NAME)
     .insert(propertyBody)
     .select(SELECT_QUERY)
@@ -73,7 +106,7 @@ export async function updatePropertyById(
   propertyId: string,
   property: Partial<Property>,
 ): Promise<Property> {
-  const { error, data }: PostgrestSingleResponse<Property> = await supabase
+  const { error, data }: PostgrestSingleResponse<Property> = await sb
     .from(TABLE_NAME)
     .update(property)
     .eq(QUERY_ID, propertyId)
@@ -87,7 +120,7 @@ export async function updatePropertyById(
 }
 
 export async function deletePropertyById(propertyId: string) {
-  const { error }: PostgrestSingleResponse<Property> = await supabase
+  const { error }: PostgrestSingleResponse<Property> = await sb
     .from(TABLE_NAME)
     .delete()
     .eq(QUERY_ID, propertyId)

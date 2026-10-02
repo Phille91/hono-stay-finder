@@ -4,10 +4,14 @@ import { prettyJSON } from 'hono/pretty-json'
 
 import properties from './routes/properties.js'
 import bookings from './routes/bookings.js'
-
+import auth from './routes/auth.js'
+import { optionalAuth } from './middleware/auth.js'
 const app = new Hono({ strict: false })
 
 app.use(prettyJSON())
+
+app.use("*", optionalAuth)
+
 
 app.get('/', (c) => {
   return c.json({
@@ -18,6 +22,7 @@ app.get('/', (c) => {
 
 app.route("/properties",properties)
 app.route("/bookings",bookings)
+app.route("/auth",auth)
 serve({
   fetch: app.fetch,
   port: 3000
