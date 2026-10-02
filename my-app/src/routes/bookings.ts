@@ -3,11 +3,18 @@ import {
   bookingOptionalValidator,
   bookingValidator,
 } from "../validators/bookingvalidator.js";
-import { getBookings, getBookingById, createBooking, updateBookingById, deleteBookingById } from "../database/bookings.js";
+import {
+  getBookings,
+  getBookingById,
+  createBooking,
+  updateBookingById,
+  deleteBookingById,
+} from "../database/bookings.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const bookings = new Hono({ strict: false });
 
-bookings.get("/", async (c) => {
+bookings.get("/", requireAuth, async (c) => {
   try {
     const bookings = await getBookings();
     return c.json(bookings);
@@ -17,8 +24,13 @@ bookings.get("/", async (c) => {
   }
 });
 
-bookings.get("/:id", async (c) => {
+bookings.get("/:id", requireAuth, async (c) => {
   const bookingId = c.req.param("id");
+
+  if (!bookingId) {
+    return c.json({ error: "Property ID is required" }, 400);
+  }
+
   try {
     const booking = await getBookingById(bookingId);
     return c.json(booking);
@@ -28,19 +40,18 @@ bookings.get("/:id", async (c) => {
   }
 });
 
-bookings.post("/", bookingValidator, async (c) => {
+bookings.post("/", requireAuth, bookingValidator, async (c) => {
   const bookingBody: NewBooking = c.req.valid("json");
-try {
-  const booking = await createBooking(bookingBody);
-  return c.json(booking, 201);
-} catch (e) {
-  console.warn("Error in creating booking", e);
-  return c.json({ error: "Error creating booking" }, 500);
-}
+  try {
+    const booking = await createBooking(bookingBody);
+    return c.json(booking, 201);
+  } catch (e) {
+    console.warn("Error in creating booking", e);
+    return c.json({ error: "Error creating booking" }, 500);
+  }
 });
 
-
-bookings.patch("/:id", bookingOptionalValidator, async (c) => {
+bookings.patch("/:id", requireAuth, bookingOptionalValidator, async (c) => {
   const bookingId = c.req.param("id");
   const bookingBody: Partial<NewBooking> = c.req.valid("json");
   try {
@@ -48,12 +59,17 @@ bookings.patch("/:id", bookingOptionalValidator, async (c) => {
     return c.json(booking);
   } catch (e) {
     console.warn("Error updating booking in SB database", e);
-    return c.json(null, 404)
+    return c.json(null, 404);
   }
 });
 
-  bookings.delete("/:id", async (c) => {
+bookings.delete("/:id", requireAuth, async (c) => {
   const bookingId = c.req.param("id");
+
+  if (!bookingId) {
+    return c.json({ error: "Property ID is required" }, 400);
+  }
+
   try {
     await deleteBookingById(bookingId);
     return c.json(null, 200);

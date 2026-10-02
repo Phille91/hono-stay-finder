@@ -14,7 +14,6 @@ import {
   updatePropertyById,
 } from "../database/properties.js";
 import { requireAuth } from "../middleware/auth.js";
-import type { User } from "@supabase/supabase-js";
 
 const properties = new Hono({ strict: false });
 
@@ -73,7 +72,7 @@ properties.post("/", requireAuth, propertyValidator, async (c) => {
 
 // Extra: "Updaterande" av en Property PUT/PATCH (för patch kolla Partial types)
 // om den finns tänk en blandning mellan GET + POST
-properties.patch("/:id", propertyOptionalValidator, async (c) => {
+properties.patch("/:id", requireAuth, propertyOptionalValidator, async (c) => {
   const propertyId = c.req.param("id");
   const propertyBody: Partial<Property> = c.req.valid("json");
   try {
@@ -86,8 +85,12 @@ properties.patch("/:id", propertyOptionalValidator, async (c) => {
 });
 
 // Extra: "bortagning" av en Property DELETE om den finns tänk en GET som sedan tar bort 200/204
-properties.delete("/:id", async (c) => {
+properties.delete("/:id", requireAuth, async (c) => {
   const propertyId = c.req.param("id");
+  if (!propertyId) {
+    return c.json({ error: "Property ID is required" }, 400);
+  }
+
   try {
     await deletePropertyById(propertyId);
     return c.json(null, 200);
