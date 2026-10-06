@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import { authValidator } from "../validators/authValidator.js";
-import { match } from "node:assert";
 const auth = new Hono({
   strict: false,
 });
@@ -46,7 +45,6 @@ auth.post("/login", authValidator, async (c) => {
     if (!error) {
       return c.json({
         user: data.user,
-        accessToken: data.session?.access_token,
       });
     }
     throw error;
@@ -61,41 +59,17 @@ auth.post("/login", authValidator, async (c) => {
   }
 });
 
-auth.get("/me", async (c) => {
-  const authorization = c.req.header("Authorization");
-  const token = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
+auth.get("/me", (c) => {
+  const user = c.get("user");
 
-  if (!token) {
-    return c.json({ message: "Unauthorized" }, 401);
+  if (!user) {
+    return c.json({ message: "No user found" }, 401);
   }
-
-  const sb = c.get("supabase");
-  const { data, error } = await sb.auth.getUser(token);
-
-  if (error || !data.user) {
-    console.warn("GET /me token verification failed:", error?.message);
-    return c.json({ message: "Unauthorized" }, 401);
-  }
-
-  return c.json({ user: data.user });
+  return c.json({ user: user }, 200);
 });
 
 auth.post("/logout", async (c) => {
-  const authorization = c.req.header("Authorization");
-  const token = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
-
-  if (!token) {
-    return c.json({ message: "Unauthorized" }, 401);
-  }
-
-  const sb = c.get("supabase");
-  const { data, error } = await sb.auth.getUser(token);
-
-  if (error || !data.user) {
-    return c.json({ message: "Unauthorized" }, 401);
-  }
-
-  const { error: signOurError } = await sb.auth.admin.signOut(token);
+  const { error: signOurError } = await c.get("supabase").auth.signOut();
 
   if (signOurError) {
     console.error("Logout failed:", signOurError.message);

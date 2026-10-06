@@ -16,7 +16,7 @@ const bookings = new Hono({ strict: false });
 
 bookings.get("/", requireAuth, async (c) => {
   try {
-    const bookings = await getBookings();
+    const bookings = await getBookings(c.get("supabase"));
     return c.json(bookings);
   } catch (e) {
     console.warn("Error in fetching bookings from SB database", e);
@@ -32,7 +32,7 @@ bookings.get("/:id", requireAuth, async (c) => {
   }
 
   try {
-    const booking = await getBookingById(bookingId);
+    const booking = await getBookingById(c.get("supabase"), bookingId);
     return c.json(booking);
   } catch (e) {
     console.warn("Error in fetching booking from SB database", e);
@@ -43,7 +43,7 @@ bookings.get("/:id", requireAuth, async (c) => {
 bookings.post("/", requireAuth, bookingValidator, async (c) => {
   const bookingBody: NewBooking = c.req.valid("json");
   try {
-    const booking = await createBooking(bookingBody);
+    const booking = await createBooking(c.get("supabase"), bookingBody);
     return c.json(booking, 201);
   } catch (e) {
     console.warn("Error in creating booking", e);
@@ -55,7 +55,11 @@ bookings.patch("/:id", requireAuth, bookingOptionalValidator, async (c) => {
   const bookingId = c.req.param("id");
   const bookingBody: Partial<NewBooking> = c.req.valid("json");
   try {
-    const booking = await updateBookingById(bookingId, bookingBody);
+    const booking = await updateBookingById(
+      c.get("supabase"),
+      bookingId,
+      bookingBody,
+    );
     return c.json(booking);
   } catch (e) {
     console.warn("Error updating booking in SB database", e);
@@ -71,7 +75,7 @@ bookings.delete("/:id", requireAuth, async (c) => {
   }
 
   try {
-    await deleteBookingById(bookingId);
+    await deleteBookingById(c.get("supabase"), bookingId);
     return c.json(null, 200);
   } catch (e) {
     console.warn("Error deleting booking in SB database", e);
