@@ -2,14 +2,16 @@ import * as z from "zod";
 import { zValidator } from "@hono/zod-validator";
 
 const bookingObject = z.object({
-  booking_id: z.string().optional(),
   property_id: z.string().min(2, "Property ID is nececary"),
   guest_name: z.string().min(2, "Guest name is nececary"),
   guest_email: z.email("Guest email is not valid"),
-  check_in: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Check in date is not valid YYYY-MM-DD"),
-  check_out: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Check out date is not valid YYYY-MM-DD"),
+  check_in: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Check in date is not valid YYYY-MM-DD"),
+  check_out: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Check out date is not valid YYYY-MM-DD"),
   guests: z.number().min(1, "Guests needs to be at least 1"),
-  status: z.enum(["pending", "confirmed", "cancelled"]),
 });
 
 const dateOrder = {
@@ -22,10 +24,16 @@ const bookingSchema = bookingObject.refine(
   dateOrder,
 );
 
-const bookingOptionalSchema = bookingObject.partial().refine(
-  (data) => !data.check_in || !data.check_out || data.check_in <= data.check_out,
-  dateOrder,
-);
+const bookingOptionalSchema = bookingObject
+  .partial()
+  .extend({
+    status: z.enum(["pending", "confirmed", "cancelled"]).optional(),
+  })
+  .refine(
+    (data) =>
+      !data.check_in || !data.check_out || data.check_in <= data.check_out,
+    dateOrder,
+  );
 
 export const bookingValidator = zValidator(
   "json",

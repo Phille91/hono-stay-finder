@@ -2,6 +2,7 @@ interface Booking {
   booking_id: string;
   property_id: string;
   guest_name: string;
+  guest_id: string;
   guest_email: string;
   check_in: string;
   check_out: string;
@@ -9,7 +10,7 @@ interface Booking {
   status?: "pending" | "confirmed" | "cancelled";
 }
 
-type NewBooking = Omit<Booking, "booking_id">
+type NewBooking = Omit<Booking, "booking_id" | "guest_id">;
 
 type BookingValidKey = keyof Booking;
 

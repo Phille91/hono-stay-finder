@@ -9,6 +9,7 @@ const SELECT_QUERY_LIST: BookingValidKey[] = [
   "booking_id",
   "property_id",
   "guest_name",
+  "guest_id",
   "guest_email",
   "check_in",
   "check_out",
