@@ -24,6 +24,7 @@ properties.get("/", async (c) => {
       maxPrice: Number(c.req.query("maxprice")) || undefined,
       location: c.req.query("location"),
       maxGuests: Number(c.req.query("maxguests")) || undefined,
+      sort: c.req.query("sort") as "asc" | "desc" | undefined,
     });
     return c.json(properties);
   } catch (e) {

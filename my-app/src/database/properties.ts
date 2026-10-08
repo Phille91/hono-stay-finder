@@ -26,6 +26,7 @@ type PropertyListFilter = Partial<{
   maxPrice: number;
   location: string;
   maxGuests: number;
+  sort: "asc" | "desc";
 }>;
 
 function buildPropertiesFilter(
@@ -33,7 +34,7 @@ function buildPropertiesFilter(
   filters: PropertyListFilter,
 ) {
   if (filters.maxPrice) {
-    query = query.lte("price_per_night", filters.maxPrice);
+    query = query.gte("price_per_night", filters.maxPrice);
   }
 
   if (filters.maxGuests) {
@@ -43,6 +44,14 @@ function buildPropertiesFilter(
   if (filters.location && filters.location.trim().length > 2) {
     query = query.ilike("location", `%${filters.location}%`);
   }
+
+  if (filters.sort) {
+    query = query.order("price_per_night", {
+      ascending: filters.sort === "asc",
+    });
+  }
+
+  return query;
 }
 
 export async function getProperties(
