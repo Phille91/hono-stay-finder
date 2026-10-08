@@ -14,6 +14,7 @@ import {
   updatePropertyById,
 } from "../database/properties.js";
 import { requireAuth } from "../middleware/auth.js";
+import dbError from "../utils/dbError.js";
 
 const properties = new Hono({ strict: false });
 
@@ -42,7 +43,7 @@ properties.get("/kind/:kind", propertyParamValidator, async (c) => {
     return c.json(properties);
   } catch (e) {
     console.warn("Error in fetching properties from SB database", e);
-    return c.json([]);
+    return dbError(c, e);
   }
 });
 
@@ -54,7 +55,7 @@ properties.get("/:id", async (c) => {
     return c.json(property);
   } catch (e) {
     console.warn("Error in fetching property from SB database", e);
-    return c.json(null, 404);
+    return dbError(c, e);
   }
 });
 
@@ -66,7 +67,7 @@ properties.post("/", requireAuth, propertyValidator, async (c) => {
     return c.json(property, 201);
   } catch (e) {
     console.warn("error in inserting property into SB DB", e);
-    return c.json(e, 500);
+    return dbError(c, e);
   }
 });
 
@@ -84,7 +85,7 @@ properties.patch("/:id", requireAuth, propertyOptionalValidator, async (c) => {
     return c.json(property);
   } catch (e) {
     console.log("Error updating property in SB DB", e);
-    return c.json(null, 404);
+    return dbError(c, e);
   }
 });
 
@@ -97,10 +98,10 @@ properties.delete("/:id", requireAuth, async (c) => {
 
   try {
     await deletePropertyById(c.get("supabase"), propertyId);
-    return c.json(null, 200);
+    return c.body(null, 204);
   } catch (e) {
     console.warn("Error in deleting property", e);
-    return c.json(null, 404);
+    return dbError(c, e);
   }
 });
 export default properties;
