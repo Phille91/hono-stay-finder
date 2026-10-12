@@ -29,6 +29,22 @@ export async function getBookings(sb: SupabaseClient): Promise<Booking[]> {
   throw error;
 }
 
+export async function getBookingsByPropertyId(
+  sb: SupabaseClient,
+  propertyId: string | undefined,
+): Promise<Booking[]> {
+  const { data, error } = await sb
+    .from(TABLE_NAME)
+    .select(SELECT_QUERY)
+    .eq("property_id", propertyId)
+    .order("check_in");
+
+  if (!error) {
+    return data as any as Booking[];
+  }
+  throw error;
+}
+
 export async function getBookingById(
   sb: SupabaseClient,
   bookingId: string,

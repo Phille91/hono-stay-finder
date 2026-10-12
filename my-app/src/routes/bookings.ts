@@ -9,7 +9,9 @@ import {
   createBooking,
   updateBookingById,
   deleteBookingById,
+  getBookingsByPropertyId,
 } from "../database/bookings.js";
+import dbError from "../utils/dbError.js";
 import { requireAuth } from "../middleware/auth.js";
 
 const bookings = new Hono({ strict: false });
@@ -20,7 +22,22 @@ bookings.get("/", requireAuth, async (c) => {
     return c.json(bookings);
   } catch (e) {
     console.warn("Error in fetching bookings from SB database", e);
-    return c.json([]);
+    return dbError(c, e);
+  }
+});
+
+bookings.get("/properties/:propertyId", requireAuth, async (c) => {
+  const propertyId = c.req.param("propertyId");
+
+  try {
+    const bookings = await getBookingsByPropertyId(
+      c.get("supabase"),
+      propertyId,
+    );
+    return c.json(bookings);
+  } catch (e) {
+    console.warn("Error in fetching bookings for property from SB database", e);
+    return dbError(c, e);
   }
 });
 
@@ -36,7 +53,7 @@ bookings.get("/:id", requireAuth, async (c) => {
     return c.json(booking);
   } catch (e) {
     console.warn("Error in fetching booking from SB database", e);
-    return c.json(null, 404);
+    return dbError(c, e);
   }
 });
 
@@ -47,7 +64,7 @@ bookings.post("/", requireAuth, bookingValidator, async (c) => {
     return c.json(booking, 201);
   } catch (e) {
     console.warn("Error in creating booking", e);
-    return c.json({ error: "Error creating booking" }, 500);
+    return dbError(c, e);
   }
 });
 
@@ -63,7 +80,7 @@ bookings.patch("/:id", requireAuth, bookingOptionalValidator, async (c) => {
     return c.json(booking);
   } catch (e) {
     console.warn("Error updating booking in SB database", e);
-    return c.json(null, 404);
+    return dbError(c, e);
   }
 });
 
@@ -79,7 +96,7 @@ bookings.delete("/:id", requireAuth, async (c) => {
     return c.json(null, 200);
   } catch (e) {
     console.warn("Error deleting booking in SB database", e);
-    return c.json(null, 404);
+    return dbError(c, e);
   }
 });
 export default bookings;

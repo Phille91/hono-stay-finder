@@ -29,7 +29,7 @@ properties.get("/", async (c) => {
     return c.json(properties);
   } catch (e) {
     console.warn("Error in fetching properties from SB database", e);
-    return c.json([]);
+    return dbError(c, e);
   }
 });
 
