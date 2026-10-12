@@ -1,3 +1,5 @@
+type BookingStatus = "pending" | "confirmed" | "cancelled";
+
 interface Booking {
   booking_id: string;
   property_id: string;
@@ -7,11 +9,13 @@ interface Booking {
   check_in: string;
   check_out: string;
   guests: number;
-  status?: "pending" | "confirmed" | "cancelled";
+  status: BookingStatus;
 }
 
-type NewBooking = Omit<Booking, "booking_id" | "guest_id">;
+type NewBooking = Omit<Booking, "booking_id" | "guest_id" | "status">;
+
+type UpdateBooking = Partial<NewBooking> & {
+  status?: "confirmed" | "cancelled";
+};
 
 type BookingValidKey = keyof Booking;
-
-type BookingStatus = "pending" | "confirmed" | "cancelled";

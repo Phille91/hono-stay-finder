@@ -80,7 +80,7 @@ export async function createBooking(
 export async function updateBookingById(
   sb: SupabaseClient,
   bookingId: string,
-  bookingBody: Partial<NewBooking>,
+  bookingBody: Partial<UpdateBooking>,
 ): Promise<Booking> {
   const { data, error }: PostgrestSingleResponse<Booking> = await sb
     .from(TABLE_NAME)

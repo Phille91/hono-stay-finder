@@ -15,7 +15,7 @@ const bookingObject = z.object({
 });
 
 const dateOrder = {
-  message: "Check in can't be later than check out",
+  message: "Check out must be after check in",
   path: ["check_in"],
 };
 
@@ -27,7 +27,7 @@ const bookingSchema = bookingObject.refine(
 const bookingOptionalSchema = bookingObject
   .partial()
   .extend({
-    status: z.enum(["pending", "confirmed", "cancelled"]).optional(),
+    status: z.enum(["confirmed", "cancelled"]).optional(),
   })
   .refine(
     (data) =>

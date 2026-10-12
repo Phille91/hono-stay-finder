@@ -70,7 +70,7 @@ bookings.post("/", requireAuth, bookingValidator, async (c) => {
 
 bookings.patch("/:id", requireAuth, bookingOptionalValidator, async (c) => {
   const bookingId = c.req.param("id");
-  const bookingBody: Partial<NewBooking> = c.req.valid("json");
+  const bookingBody: Partial<UpdateBooking> = c.req.valid("json");
   try {
     const booking = await updateBookingById(
       c.get("supabase"),
