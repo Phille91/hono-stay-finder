@@ -1,33 +1,30 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { prettyJSON } from "hono/pretty-json";
-
+import { logger } from "hono/logger";
 import properties from "./routes/properties.js";
 import bookings from "./routes/bookings.js";
 import auth from "./routes/auth.js";
 import { optionalAuth } from "./middleware/auth.js";
 import { cors } from "hono/cors";
-import { env } from "node:process";
+import { env } from "./env.js";
 const app = new Hono({ strict: false });
 
-app.use(prettyJSON());
-
-app.use("*", optionalAuth);
-
-const frontendUrl = process.env.FRONTEND_URL;
-if (!frontendUrl) {
-  throw new Error("Frontend_URL must be set");
-}
+app.use(logger());
 
 app.use(
   "*",
   cors({
-    origin: frontendUrl,
+    origin: env.frontendUrl,
     credentials: true,
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type"],
   }),
 );
+
+app.use(prettyJSON());
+
+app.use("*", optionalAuth);
 
 app.get("/", (c) => {
   return c.json({

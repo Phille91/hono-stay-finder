@@ -34,11 +34,11 @@ function buildPropertiesFilter(
   filters: PropertyListFilter,
 ) {
   if (filters.maxPrice) {
-    query = query.gte("price_per_night", filters.maxPrice);
+    query = query.lte("price_per_night", filters.maxPrice);
   }
 
   if (filters.maxGuests) {
-    query = query.lte("max_guests", filters.maxGuests);
+    query = query.gte("max_guests", filters.maxGuests);
   }
 
   if (filters.location && filters.location.trim().length > 2) {
