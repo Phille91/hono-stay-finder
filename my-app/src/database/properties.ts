@@ -1,5 +1,6 @@
 import type {
   PostgrestFilterBuilder,
+  PostgrestResponse,
   PostgrestSingleResponse,
   SupabaseClient,
 } from "@supabase/supabase-js";
@@ -60,12 +61,15 @@ export async function getProperties(
 ): Promise<Property[]> {
   let query = sb.from(TABLE_NAME).select(SELECT_QUERY);
 
-  buildPropertiesFilter(query, filters);
+  query = buildPropertiesFilter(query, filters);
 
-  const { error, data } = await query;
+  const { error, data } = await query.overrideTypes<
+    Property[],
+    { merge: false }
+  >();
 
   if (!error) {
-    return data as any as Property[];
+    return data;
   }
   throw error;
 }
@@ -75,14 +79,19 @@ export async function getPropertiesByKind(
   kind: PropertyKind,
   filters: PropertyListFilter,
 ): Promise<Property[]> {
-  const query = sb.from(TABLE_NAME).select(SELECT_QUERY).eq(QUERY_KIND, kind);
+  let query = sb.from(TABLE_NAME).select(SELECT_QUERY).eq(QUERY_KIND, kind);
+
+  query = buildPropertiesFilter(query, filters);
 
   buildPropertiesFilter(query, filters);
 
-  const { error, data } = await query;
+  const { error, data } = await query.overrideTypes<
+    Property[],
+    { merge: false }
+  >();
 
   if (!error) {
-    return data as any as Property[];
+    return data;
   }
   throw error;
 }

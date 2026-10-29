@@ -21,10 +21,13 @@ const SELECT_QUERY = SELECT_QUERY_LIST.join(", ");
 const QUERY_ID = "booking_id";
 
 export async function getBookings(sb: SupabaseClient): Promise<Booking[]> {
-  const { data, error } = await sb.from(TABLE_NAME).select(SELECT_QUERY);
+  const { data, error } = await sb
+    .from(TABLE_NAME)
+    .select(SELECT_QUERY)
+    .overrideTypes<Booking[], { merge: false }>();
 
   if (!error) {
-    return data as any as Booking[];
+    return data;
   }
   throw error;
 }
@@ -37,10 +40,10 @@ export async function getBookingsByPropertyId(
     .from(TABLE_NAME)
     .select(SELECT_QUERY)
     .eq("property_id", propertyId)
-    .order("check_in");
-
+    .order("check_in")
+    .overrideTypes<Booking[], { merge: false }>();
   if (!error) {
-    return data as any as Booking[];
+    return data;
   }
   throw error;
 }
